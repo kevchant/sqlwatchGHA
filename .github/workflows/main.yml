@@ -56,3 +56,14 @@ jobs:
         uses: actions/download-artifact@v2.0.6
         with:
           name: sqlwatch
+      - name: Azure SQL Deploy
+        uses: Azure/sql-action@v1
+        with:
+          # Name of the SQL Server
+          server-name: 'localhost,1443'
+          # The connection string, including authentication information, for the SQL Server database.
+          connection-string: '${{ secrets.SQLWATCH_CONNECTION_STRING }}'
+          # Path to the SQLWATCH dacpac file
+          dacpac-package: 'sqlwatch.dacpac'
+          # In case DACPAC option is selected, additional SqlPackage.exe arguments that will be applied. When SQL query option is selected, additional sqlcmd.exe arguments will be applied.
+          arguments: '/p:IncludeCompositeObjects=true'   
