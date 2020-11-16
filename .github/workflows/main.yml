@@ -41,3 +41,18 @@ jobs:
         with:
           name: sqlwatch
           path: ${{ github.workspace }}/${{env.SQLWATCH_PATH}}/bin/Release/  
+
+  # release job
+  release:
+    # Set the dependency for the build job
+    needs: build
+    # The type of runner that the job will run on
+    runs-on: self-hosted
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - name: download sqlwatch artifact
+        # Dowloads sqlwatch artifact to dacpac folder
+        uses: actions/download-artifact@v2.0.6
+        with:
+          name: sqlwatch
