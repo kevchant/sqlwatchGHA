@@ -12,7 +12,7 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
+  # build job
   build:
     env:
       SQLWATCH_PATH: SqlWatch.Monitor/Project.SqlWatch.Database
@@ -23,13 +23,21 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
-
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+      # fix collation issue
+      # you will need to change the $New_DC value to whatever collation your SQL instance is using
+      - name: fix collation
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          cd $env:SQLWATCH_PATH
+          $Old_DC = '<DefaultCollation>Latin1_General_CI_AS</DefaultCollation>'
+          $New_DC = '<DefaultCollation>SQL_Latin1_General_CP1_CI_AS</DefaultCollation>'          
+          (Get-Content "SQLWATCH.sqlproj") -replace $Old_DC, $New_DC  | Set-Content "SQLWATCH.sqlproj"
+      # create dacpac using MSBUILD
+      - name: create dacpac
+        run: |
+          cd $env:SQLWATCH_PATH
+          & 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\msbuild.exe' SQLWATCH.sqlproj /p:Configuration=Release
+      # Publish an artifact
+      - uses: actions/upload-artifact@v2
+        with:
+          name: sqlwatch
+          path: ${{ github.workspace }}/${{env.SQLWATCH_PATH}}/bin/Release/  
